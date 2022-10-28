@@ -3,6 +3,12 @@ import L from "leaflet";
 import React from "react";
 import {GeoJSON, MapContainer,  Polygon, TileLayer} from "react-leaflet";
 
+import {asyncMunicipalities, atomicFeatures, atomicPoly} from "./App";
+import {atom, useRecoilState, useRecoilValue} from "recoil";
+import {textState} from "./App";
+import {GeoJsonProperties} from "geojson";
+
+
 
 
 const getMultiPolygon = (): [number, number][][] => {
@@ -45,16 +51,8 @@ const polygon: [number, number][] = [
     [51.52, -0.12],
 ]
 
-const polygon2: [number, number][] = [
-    [353189.10248069523, 9292173.937817434],
-    [344561.8567401087, 9302037.286039425],
-    [357237.162870205, 9314410.285613677],
-    [357308.14594317746, 9314889.693150457],
-    [357447.1919512511, 9315170.547551649],
-    [357660.6812855164, 9315518.342990335],
-    [357705.0232613912, 9315547.113561025],
-    [357870.4404237608, 9315614.904657384]
-];
+
+
 
 const purpleOptions = { color: 'purple' }
 
@@ -71,45 +69,11 @@ let testFeatures: GeoJSON.FeatureCollection<any> = {
 
 
 
-// it's necessary to tell variable type
-let featureCollection: GeoJSON.FeatureCollection<any> = {
-    type: 'FeatureCollection',
-    features: [
-        {
-            type: 'Feature',
-            geometry: {
-                type: "Polygon",
-                coordinates: [[
-                    [-104.05, 48.99],
-                    [-97.22,  48.98],
-                    [-96.58,  45.94],
-                    [-104.03, 45.94],
-                    [-104.05, 48.99]
-                ]]
-            },
-            "properties": {"party": "Republican"},
-        },
-        {
-            type: "Feature",
-            properties: {"party": "Democrat"},
-            geometry: {
-                type: "Polygon",
-                coordinates: [[
-                    [-109.05, 41.00],
-                    [-102.06, 40.99],
-                    [-102.03, 36.99],
-                    [-109.04, 36.99],
-                    [-109.05, 41.00]
-                ]]
-            }
-        }
-    ]
-};
 
-
-export class Map extends React.Component {
-    render() {
-        return <MapContainer center={[-3.7, -38.58]} zoom={8} scrollWheelZoom={true} className="Map" crs={L.CRS.EPSG3857}>
+export function Map() {
+        const features = useRecoilValue(atomicFeatures)
+        const municipalities:  void | GeoJSON.FeatureCollection<any, GeoJsonProperties> = useRecoilValue(asyncMunicipalities);
+    return <MapContainer center={[-5.2, -39.5]} zoom={8} scrollWheelZoom={true} className="Map" crs={L.CRS.EPSG3857}>
             <TileLayer
                 attribution='Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://stamen-tiles-{s}.a.ssl.fastly.net/toner-lite/{z}/{x}/{y}{r}.png"
@@ -121,11 +85,7 @@ export class Map extends React.Component {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />*/}
-            <Polygon pathOptions={purpleOptions} positions={polygon}/>
-            <Polygon pathOptions={purpleOptions} positions={polygon2}/>
-            <Polygon pathOptions={purpleOptions} positions={multiPolygon}/>
-            <GeoJSON data={featureCollection} pathOptions={purpleOptions} />
-            <GeoJSON data={testFeatures} pathOptions={purpleOptions} />
+            <GeoJSON data={features} pathOptions={purpleOptions} />
+            { (municipalities) ? <GeoJSON data={municipalities} pathOptions={purpleOptions} /> : <></>}
         </MapContainer>;
-    }
 }
